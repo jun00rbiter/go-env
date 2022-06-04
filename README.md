@@ -1,2 +1,7 @@
-# go-env
-Docker上のgo開発環境
+# go-env - go開発環境の作成
+
+# 最終目的
+go言語でWebアプリを構築するためのgo開発環境をDocker作成する。
+
+# 目標
+* Docker上にコンソール立ち上げ環境を作る。
