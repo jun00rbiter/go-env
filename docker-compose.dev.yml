@@ -6,7 +6,6 @@ services:
       dockerfile: ./env/Dockerfile.golang.dev
       args:
         - USER_NAME=$USER_NAME
-        - USER_PW=$USER_PW
         - USER_ID=$USER_ID
         - GROUP_NAME=$GROUP_NAME
         - GROUP_ID=$GROUP_ID
