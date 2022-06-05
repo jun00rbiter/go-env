@@ -1,5 +1,29 @@
 version: "3"
 services:
+  blog:
+    build:
+      context: .
+      dockerfile: ./env/Dockerfile.blog.dev
+      args:
+        - USER_NAME=$USER_NAME
+        - USER_ID=$USER_ID
+        - GROUP_NAME=$GROUP_NAME
+        - GROUP_ID=$GROUP_ID
+        - TZ=$TZ
+    image: dev-env-blog-image
+    container_name: dev-env-blog
+    command: bash
+    tty: true
+    volumes:
+      - ./src/golang:/home/$USER_NAME
+      - ./src/go-blog:/src/go-blog
+    env_file: .env.dev
+    environment:
+      - GO111MODULE=on
+    networks:
+      dev-env-link:
+        ipv4_address: $NETWORK_BASE.20
+
   golang:
     build:
       context: .

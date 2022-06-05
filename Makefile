@@ -34,7 +34,7 @@ env-rmi:
 	-$(DC) down --rmi all
 
 # docker imageビルド
-env-build: go-build
+env-build: go-build blog-build
 
 # top
 env-top:
@@ -73,3 +73,28 @@ go-down: go-stop
 # golang環境 container停止/破棄、image破棄
 go-rmi: go-down
 	-$(D) rmi -f dev-env-golang-image
+
+# blog環境 ---------------------
+# blog環境 imageビルド
+blog-build:
+	$(DC) build --force blog
+
+# blog環境 container実行
+blog-up:
+	$(DC) up -d blog
+
+# blog環境 container実行、同一コンテナでbash実行
+blog-console: blog-up
+	$(DC) exec blog bash
+
+# blog環境 container停止
+blog-stop:
+	-$(DC) stop blog
+
+# blog環境 container停止/破棄
+blog-down: blog-stop
+	-$(DC) rm -f blog
+
+# blog環境 container停止/破棄、image破棄
+blog-rmi: blog-down
+	-$(D) rmi -f dev-env-blog-image
