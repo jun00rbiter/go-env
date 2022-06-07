@@ -79,9 +79,13 @@ go-rmi: go-down
 blog-build:
 	$(DC) build --force blog
 
-# blog環境 container実行
+# blog環境 container実行(deamon)
 blog-up:
 	$(DC) up -d blog
+
+# blog環境 リビルド、container実行(コンソール出力)
+blog-run:
+	$(DC) up --build blog
 
 # blog環境 container実行、同一コンテナでbash実行
 blog-console: blog-up

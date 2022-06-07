@@ -12,7 +12,7 @@ services:
         - TZ=$TZ
     image: dev-env-blog-image
     container_name: dev-env-blog
-    command: bash
+    # command: bash
     tty: true
     volumes:
       - ./src/golang:/home/$USER_NAME
@@ -20,6 +20,8 @@ services:
     env_file: .env.dev
     environment:
       - GO111MODULE=on
+    ports:
+      - 8888:8080
     networks:
       dev-env-link:
         ipv4_address: $NETWORK_BASE.20
