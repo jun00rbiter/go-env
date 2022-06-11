@@ -22,6 +22,7 @@ services:
       - GO111MODULE=on
     ports:
       - 8888:8080
+      - 5002:5002 # realizeサーバー用のPortFoward設定
     networks:
       dev-env-link:
         ipv4_address: $NETWORK_BASE.20

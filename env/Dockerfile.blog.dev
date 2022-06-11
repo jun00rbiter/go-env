@@ -14,6 +14,12 @@ RUN apt update && apt install -y sudo
 
 RUN apt install -y jq tree diffutils nano vim
 
+# realizeのインストール
+# module modeではインストールできない。
+ENV DEBIAN_FRONTEND=noninteractive
+RUN GO111MODULE=off go get github.com/oxequa/realize
+ENV GO111MODULE=on
+
 # システムアカウントの作成(ホームディレクトリは作成しない)
 RUN groupadd -g $GROUP_ID $GROUP_NAME && \
     useradd -s /bin/bash -u $USER_ID -g $GROUP_ID -G sudo $USER_NAME -r -d /home/$USER_NAME -M && \
@@ -57,5 +63,10 @@ WORKDIR /dist
 # テンポラリの/tmp/appディレクトリを削除(システムアカウント実行)
 RUN rm -rf /tmp/app
 
-# コンテナ起動時にgo-blogコマンドが実行されるように設定
-CMD ["./go-blog"]
+# # コンテナ起動時にgo-blogコマンドが実行されるように設定 --------------
+# CMD ["./go-blog"]
+
+# realizeを使ったホットリロード --------------------------------------
+WORKDIR /src/go-blog
+CMD [ "realize", "start", "--run", "--build" ]
+# CMD [ "realize", "start", "--run", "--build", "--server" ]  # realizeサーバーを建てる場合
