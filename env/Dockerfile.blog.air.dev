@@ -1,0 +1,70 @@
+FROM golang:1.18.3-buster
+
+ARG USER_NAME=$USER_NAME
+ARG USER_ID=$USER_ID
+ARG GROUP_NAME=$GROUP_NAME
+ARG GROUP_ID=$GROUP_ID
+ARG TZ=$TZ
+ENV TZ=$TZ
+
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y sudo
+
+RUN apt install -y jq tree diffutils nano vim
+
+# realizeのインストール
+# module modeではインストールできない。
+ENV DEBIAN_FRONTEND=noninteractive
+# RUN GO111MODULE=off go get github.com/oxequa/realize
+# ENV GO111MODULE=on
+
+# システムアカウントの作成(ホームディレクトリは作成しない)
+RUN groupadd -g $GROUP_ID $GROUP_NAME && \
+    useradd -s /bin/bash -u $USER_ID -g $GROUP_ID -G sudo $USER_NAME -r -d /home/$USER_NAME -M && \
+    echo "$USER_NAME   ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# ------ これより下が書き変わった部分 ------
+
+# ビルドしたgo-buildコマンドの格納先ディレクトリ作成(root実行)
+# コンテナ上でのgo-blogコマンド実行ディレクトリでもある
+# ディレクトリのオーナーはシステムアカウント
+RUN mkdir /dist && \
+    chown $USER_NAME.$GROUP_NAME /dist && \
+    chmod 750 /dist
+
+# go buildに必要なキャッシュディレクトリの作成(root実行)
+# ディレクトリのオーナーはシステムアカウント
+RUN mkdir /tmp/go-cache && \
+    chown $USER_NAME.$GROUP_NAME /tmp/go-cache && \
+    chmod 755 /tmp/go-cache
+# go buildに必要なキャッシュディレクトリの設定(root実行)
+ENV GOCACHE=/tmp/go-cache
+
+# ホスト環境のソースコードをテンポラリの/tmp/appにコピー(root実行)
+COPY ./src/go-blog/app /tmp/app
+# ソースコードディレクトリのオーナー変更(root実行)
+# ビルド時にgo.mod、go.sumを書き換えるため、オーナー変更が必要
+RUN chown -R $USER_NAME.$GROUP_NAME /tmp/app
+
+# システムアカウントに切り替え
+USER $USER_NAME
+
+# ワークディレクトリをソースコードディレクトリに切り替え(システムアカウント実行)
+WORKDIR /tmp/app
+# ソースコードをコンパイルし、/distディレクトリgo-blogコマンドを作成(システムアカウント実行)
+RUN go mod tidy
+RUN go build -o /dist/go-blog entrypoints/production/main.go
+
+# ワークディレクトリを /dist に切り替え(システムアカウント実行)
+WORKDIR /dist
+
+# テンポラリの/tmp/appディレクトリを削除(システムアカウント実行)
+RUN rm -rf /tmp/app
+
+# airを使ったホットリロード --------------------------------------
+WORKDIR /src/go-blog
+# airのインストール
+RUN go install github.com/cosmtrek/air@latest
+CMD [ "air", "-d" ]
